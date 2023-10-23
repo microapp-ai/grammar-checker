@@ -109,31 +109,26 @@ const GrammarChecker: FC = () => {
       const data = await response.json();
       console.log(data);
       console.log(apiKey);
+      setLoading(false);
       const generatedPoem = data.choices[0].message.content;
 
-      setLoading(false);
       // Split the poem into words
-      const words = generatedPoem.split(' ');
+      const words = generatedPoem.split('');
 
       // Initialize an index to keep track of the current word
       let currentIndex = 0;
 
       // Initialize outputText as an empty string
       let outputText = '';
-
       // Function to display words one by one
       const displayWord = () => {
         if (currentIndex < words.length) {
-          outputText += ' ' + words[currentIndex]; // Add a space
+          outputText += words[currentIndex]; // Add a space
           setOutputText(outputText.trim()); // Remove trailing space
           currentIndex++;
           setTimeout(displayWord, 50); // Adjust the delay (in milliseconds) as needed
-        } else {
-          setLoading(false);
         }
       };
-
-      // Start displaying words
       displayWord();
     } catch (error) {
       console.error('Error generating poem:', error);
@@ -368,13 +363,14 @@ const GrammarChecker: FC = () => {
               overlayOpacity={0.5}
               loaderProps={{ color: 'violet', type: 'bars' }}
             />
-            {outputText !== '' && (
+            {
               <>
                 <Textarea
                   label="Grammatically Corrected Text"
                   value={outputText}
                   readOnly
                   minRows={10}
+                  placeholder="Your Corrected Text will appear here"
                 />
                 <Flex
                   justify={'space-between'}
@@ -493,31 +489,7 @@ const GrammarChecker: FC = () => {
                 </Flex>
                 <Divider my="35px" />
               </>
-            )}
-            {outputText === '' && (
-              <Flex
-                direction={'column'}
-                justify={'center'}
-                mx={'auto'}
-                mt={{
-                  base: 0,
-                  md: '10%',
-                }}
-              >
-                <img
-                  src="/GroupAI.svg"
-                  alt=""
-                  width={'300px'}
-                  height={'300px'}
-                  style={{
-                    margin: 'auto',
-                  }}
-                />
-                <Text mx={'auto'} color="gray" mt={16}>
-                  Your grammatically corrected text will appear here
-                </Text>
-              </Flex>
-            )}
+            }
           </Box>
         </Grid.Col>
       </Grid>
