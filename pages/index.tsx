@@ -70,15 +70,18 @@ const GrammarChecker: FC = () => {
     try {
       setLoading(true);
       setOutputText('');
-      const response = await fetch('/api/endpoint', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          inputText: inputText,
-        }),
-      });
+      const response = await fetch(
+        'https://grammar-checker-microapp.vercel.app/api/endpoint',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            inputText: inputText,
+          }),
+        }
+      );
 
       const data = await response.json();
       setLoading(false);
