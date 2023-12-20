@@ -19,8 +19,6 @@ import {
   FileInput,
 } from '@mantine/core';
 
-const apiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
-
 const GrammarChecker: FC = () => {
   const [inputText, setInputText] = useState('');
   const [outputText, setOutputText] = useState('');
@@ -28,7 +26,6 @@ const GrammarChecker: FC = () => {
     value: string;
     label: string;
   }
-  const [options, setOptions] = useState<Option[]>([]);
   const [loading, setLoading] = useState(false);
 
   const [textFile, setTextFile] = useState<File | null>(null);
@@ -66,11 +63,6 @@ const GrammarChecker: FC = () => {
   };
 
   const handleGenerate = async () => {
-    if (!apiKey) {
-      alert('Please set OPENAI_API_KEY');
-      console.log('TEST:', process.env.TEST);
-      return;
-    }
     if (inputText == '') {
       alert('Please enter text');
       return;
@@ -78,40 +70,19 @@ const GrammarChecker: FC = () => {
     try {
       setLoading(true);
       setOutputText('');
-      const response = await fetch(
-        'https://api.openai.com/v1/chat/completions',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${apiKey}`,
-          },
-          body: JSON.stringify({
-            messages: [
-              {
-                role: 'system',
-                content:
-                  'You are a helpful assistant that corrects text grammatically.',
-              },
-              {
-                role: 'user',
-                content: `For given text: ${inputText} \n Corrected text is:`,
-              },
-            ],
-            model: 'gpt-3.5-turbo',
-            max_tokens: 3000,
-            temperature: 1,
-            stop: '',
-          }),
-        }
-      );
+      const response = await fetch('/api/endpoint', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          inputText: inputText,
+        }),
+      });
 
       const data = await response.json();
-      console.log(data);
-      console.log(apiKey);
       setLoading(false);
-      const generatedPoem = data.choices[0].message.content;
-
+      const generatedPoem = data.correctedText;
       // Split the poem into words
       const words = generatedPoem.split('');
 
