@@ -17,7 +17,13 @@ import {
   Textarea,
   LoadingOverlay,
   FileInput,
+  FileButton,
 } from '@mantine/core';
+import dynamic from 'next/dynamic';
+const QuillEditor = dynamic(() => import('react-quill'), {
+  ssr: false, // This ensures it's not loaded during server-side rendering
+});
+import 'react-quill/dist/quill.snow.css';
 
 const GrammarChecker: FC = () => {
   const [inputText, setInputText] = useState('');
@@ -109,6 +115,18 @@ const GrammarChecker: FC = () => {
     }
   };
 
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.innerHTML = `
+      .ql-editor {
+        height: 300px;
+      }
+    `;
+    document.head.appendChild(style);
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
   return (
     <>
       <Grid h={'100%'} m={0}>
@@ -123,7 +141,111 @@ const GrammarChecker: FC = () => {
           md={6} // On medium screens, take half of the width
         >
           <Box py={24} px={'16px'} w={{ base: '100%' }}>
-            <Textarea
+            <Flex
+              justify={'space-between'}
+              direction={{
+                base: 'column',
+                md: 'row',
+              }}
+              gap={8}
+              my={8}
+            >
+              <Flex w={'100%'}>
+                <FileButton
+                  accept=".txt,.html"
+                  onChange={(event) => {
+                    setTextFile(event);
+                    handleTextFileRead(event as File);
+                  }}
+                >
+                  {(props) => (
+                    <Button
+                      {...props}
+                      variant="light"
+                      color="violet"
+                      size="sm"
+                      style={{
+                        border: '1px solid',
+                        borderTopRightRadius: '0px',
+                        borderBottomRightRadius: '0px',
+                        zIndex: 1,
+                      }}
+                      mr={'-4px'}
+                      w={'120px'}
+                    >
+                      Browse
+                    </Button>
+                  )}
+                </FileButton>
+                <FileInput
+                  iconWidth={'0px'}
+                  accept=".txt,.html"
+                  value={textFile}
+                  clearable
+                  onChange={(event) => {
+                    setTextFile(event);
+                    handleTextFileRead(event as File);
+                  }}
+                  placeholder={'Select file'}
+                  w={{
+                    base: '100%',
+                    md: '100%',
+                  }}
+                />
+              </Flex>
+              <Flex gap={8}>
+                <CopyButton value={inputText}>
+                  {({ copied, copy }) => (
+                    <Button
+                      variant="light"
+                      color="violet"
+                      size="sm"
+                      radius={'sm'}
+                      onClick={copy}
+                      style={{
+                        border: '1px solid',
+                      }}
+                    >
+                      {copied ? 'Copied' : 'Copy'}
+                    </Button>
+                  )}
+                </CopyButton>
+
+                <Button
+                  size="sm"
+                  radius={'sm'}
+                  onClick={() => {
+                    setInputText('');
+                    setOutputText('');
+                  }}
+                  variant="light"
+                  color="pink"
+                  style={{
+                    border: '1px solid red',
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: 'red',
+                    }}
+                  >
+                    Clear
+                  </Text>
+                </Button>
+              </Flex>
+            </Flex>
+            <QuillEditor
+              value={inputText}
+              onChange={(value) => {
+                setInputText(value);
+              }}
+              theme={'snow'}
+              style={{
+                minHeight: '300px',
+              }}
+              placeholder="Enter text here"
+            />
+            {/* <Textarea
               label="Enter or upload your text"
               value={inputText}
               placeholder="Enter or upload your text"
@@ -131,187 +253,56 @@ const GrammarChecker: FC = () => {
                 setInputText(event.currentTarget.value);
               }}
               minRows={10}
-            />
-            <Flex
-              justify={'space-between'}
-              direction={{
-                base: 'column',
-                md: 'row',
-              }}
-            >
-              <Flex direction={'column'} justify={'center'} align={'center'}>
-                <FileInput
-                  mt={16}
-                  iconWidth={'0px'}
-                  accept=".txt"
-                  value={textFile}
-                  onChange={(event) => {
-                    setTextFile(event);
-                    handleTextFileRead(event as File);
-                  }}
-                  placeholder={'Select file'}
-                  w={{
-                    base: '70%',
-                    md: '70%',
-                  }}
-                  ml={86}
-                  icon={
-                    <Box
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        height: '100%',
-                        backgroundColor: '#dfdfdf',
-                        border: '1px solid',
-                      }}
-                      miw={'120px'}
-                      mr={76}
-                    >
-                      <Text
-                        style={{
-                          textAlign: 'center',
-                          color: '#202123',
-                        }}
-                      >
-                        Browse file
-                      </Text>
-                    </Box>
-                  }
-                />
-                <Text size={'sm'} color="gray" mt={4}>
-                  Upload plain text file. Accepts .txt file
-                </Text>
-              </Flex>
-              <Flex my={16}>
-                <CopyButton value={inputText}>
-                  {({ copied, copy }) => (
-                    <Button
-                      variant="light"
-                      color="blue"
-                      size="sm"
-                      radius={'lg'}
-                      onClick={copy}
-                      style={{
-                        border: '1px solid',
-                      }}
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="icon icon-tabler icon-tabler-copy"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        stroke-width="2"
-                        stroke="currentColor"
-                        fill="none"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <path
-                          stroke="none"
-                          d="M0 0h24v24H0z"
-                          fill="none"
-                        ></path>
-                        <path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path>
-                        <path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path>
-                      </svg>
-                    </Button>
-                  )}
-                </CopyButton>
-                <Button
-                  variant="light"
-                  size="sm"
-                  radius={'lg'}
-                  onClick={() => {
-                    downLoadToTextFile(inputText, 'text.txt');
-                  }}
-                  color="green"
-                  style={{
-                    border: '1px solid',
-                  }}
-                  ml={16}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="icon icon-tabler icon-tabler-download"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    stroke-width="2"
-                    stroke="currentColor"
-                    fill="none"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                    <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"></path>
-                    <path d="M7 11l5 5l5 -5"></path>
-                    <path d="M12 4l0 12"></path>
-                  </svg>
-                </Button>
-                <Button
-                  size="sm"
-                  radius={'lg'}
-                  onClick={() => {
-                    setInputText('');
-                  }}
-                  variant="light"
-                  color="pink"
-                  style={{
-                    border: '1px solid',
-                    backgroundColor: '#f0a9a9',
-                  }}
-                  ml={16}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="icon icon-tabler icon-tabler-square-x"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    stroke-width="2"
-                    stroke="currentColor"
-                    fill="none"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                    <path d="M3 5a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-14z"></path>
-                    <path d="M9 9l6 6m0 -6l-6 6"></path>
-                  </svg>
-                </Button>
-              </Flex>
+            /> */}
+            <Flex justify={'flex-end'} my={8}>
+              <Button
+                variant="light"
+                color="green"
+                style={{
+                  border: '1px solid',
+                }}
+                onClick={() => {
+                  downLoadToTextFile(inputText, 'input.txt');
+                }}
+              >
+                Download Text
+              </Button>
             </Flex>
-            <Divider my="24px" />
-            <Button
-              variant="light"
-              color="violet"
-              w={'100%'}
-              style={{
-                border: '1px solid',
-              }}
-              onClick={() => {
-                handleGenerate();
-              }}
-              leftIcon={
-                <svg
-                  color="#3b05ef"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="#3b05ef"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M7.50006 5.6L10.0001 7L8.60006 4.5L10.0001 2L7.50006 3.4L5.00006 2L6.40006 4.5L5.00006 7L7.50006 5.6ZM19.5001 15.4L17.0001 14L18.4001 16.5L17.0001 19L19.5001 17.6L22.0001 19L20.6001 16.5L22.0001 14L19.5001 15.4ZM22.0001 2L19.5001 3.4L17.0001 2L18.4001 4.5L17.0001 7L19.5001 5.6L22.0001 7L20.6001 4.5L22.0001 2ZM14.3701 7.29C13.9801 6.9 13.3501 6.9 12.9601 7.29L1.29006 18.96C0.900059 19.35 0.900059 19.98 1.29006 20.37L3.63006 22.71C4.02006 23.1 4.65006 23.1 5.04006 22.71L16.7001 11.05C17.0901 10.66 17.0901 10.03 16.7001 9.64L14.3701 7.29ZM13.3401 12.78L11.2201 10.66L13.6601 8.22L15.7801 10.34L13.3401 12.78Z"
+            {/* <Divider my="24px" /> */}
+            <Flex>
+              <Button
+                variant="light"
+                color="violet"
+                w={{
+                  base: '100%',
+                  md: '80%',
+                }}
+                mx={'auto'}
+                style={{
+                  border: '1px solid',
+                }}
+                onClick={() => {
+                  handleGenerate();
+                }}
+                leftIcon={
+                  <svg
+                    color="#3b05ef"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
                     fill="#3b05ef"
-                  />
-                </svg>
-              }
-            >
-              <Text>Fix Grammatical Errors</Text>
-            </Button>
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M7.50006 5.6L10.0001 7L8.60006 4.5L10.0001 2L7.50006 3.4L5.00006 2L6.40006 4.5L5.00006 7L7.50006 5.6ZM19.5001 15.4L17.0001 14L18.4001 16.5L17.0001 19L19.5001 17.6L22.0001 19L20.6001 16.5L22.0001 14L19.5001 15.4ZM22.0001 2L19.5001 3.4L17.0001 2L18.4001 4.5L17.0001 7L19.5001 5.6L22.0001 7L20.6001 4.5L22.0001 2ZM14.3701 7.29C13.9801 6.9 13.3501 6.9 12.9601 7.29L1.29006 18.96C0.900059 19.35 0.900059 19.98 1.29006 20.37L3.63006 22.71C4.02006 23.1 4.65006 23.1 5.04006 22.71L16.7001 11.05C17.0901 10.66 17.0901 10.03 16.7001 9.64L14.3701 7.29ZM13.3401 12.78L11.2201 10.66L13.6601 8.22L15.7801 10.34L13.3401 12.78Z"
+                      fill="#3b05ef"
+                    />
+                  </svg>
+                }
+              >
+                <Text>Fix Grammatical Errors</Text>
+              </Button>
+            </Flex>
           </Box>
         </Grid.Col>
         <Grid.Col
@@ -339,129 +330,65 @@ const GrammarChecker: FC = () => {
             />
             {
               <>
-                <Textarea
-                  label="Grammatically Corrected Text"
-                  value={outputText}
-                  readOnly
-                  minRows={10}
-                  placeholder="Your Corrected Text will appear here"
-                />
                 <Flex
                   justify={'space-between'}
                   direction={{
                     base: 'column',
                     md: 'row',
                   }}
+                  gap={8}
+                  my={8}
                 >
-                  <Flex my={16}>
-                    <CopyButton value={outputText}>
-                      {({ copied, copy }) => (
-                        <Button
-                          variant="light"
-                          color="blue"
-                          size="sm"
-                          radius={'lg'}
-                          onClick={copy}
-                          style={{
-                            border: '1px solid',
-                          }}
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="icon icon-tabler icon-tabler-copy"
-                            width="24"
-                            height="24"
-                            viewBox="0 0 24 24"
-                            stroke-width="2"
-                            stroke="currentColor"
-                            fill="none"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                          >
-                            <path
-                              stroke="none"
-                              d="M0 0h24v24H0z"
-                              fill="none"
-                            ></path>
-                            <path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path>
-                            <path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path>
-                          </svg>
-                        </Button>
-                      )}
-                    </CopyButton>
-                    <Button
-                      variant="light"
-                      size="sm"
-                      radius={'lg'}
-                      onClick={() => {
-                        downLoadToTextFile(outputText, 'output.txt');
-                      }}
-                      color="green"
-                      style={{
-                        border: '1px solid',
-                      }}
-                      ml={16}
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="icon icon-tabler icon-tabler-download"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        stroke-width="2"
-                        stroke="currentColor"
-                        fill="none"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
+                  <Text size={'lg'} weight={900}>
+                    Grammatically Corrected Text
+                  </Text>
+                  <CopyButton value={outputText}>
+                    {({ copied, copy }) => (
+                      <Button
+                        variant="light"
+                        color="violet"
+                        size="sm"
+                        radius={'sm'}
+                        onClick={copy}
+                        style={{
+                          border: '1px solid',
+                        }}
                       >
-                        <path
-                          stroke="none"
-                          d="M0 0h24v24H0z"
-                          fill="none"
-                        ></path>
-                        <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"></path>
-                        <path d="M7 11l5 5l5 -5"></path>
-                        <path d="M12 4l0 12"></path>
-                      </svg>
-                    </Button>
-                    <Button
-                      size="sm"
-                      radius={'lg'}
-                      onClick={() => {
-                        setOutputText('');
-                      }}
-                      variant="light"
-                      color="pink"
-                      style={{
-                        border: '1px solid',
-                        backgroundColor: '#f0a9a9',
-                      }}
-                      ml={16}
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="icon icon-tabler icon-tabler-square-x"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        stroke-width="2"
-                        stroke="currentColor"
-                        fill="none"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <path
-                          stroke="none"
-                          d="M0 0h24v24H0z"
-                          fill="none"
-                        ></path>
-                        <path d="M3 5a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-14z"></path>
-                        <path d="M9 9l6 6m0 -6l-6 6"></path>
-                      </svg>
-                    </Button>
-                  </Flex>
+                        {copied ? 'Copied' : 'Copy'}
+                      </Button>
+                    )}
+                  </CopyButton>
                 </Flex>
-                <Divider my="35px" />
+                {/* <Textarea
+                  label="Grammatically Corrected Text"
+                  value={outputText}
+                  readOnly
+                  minRows={10}
+                  placeholder="Your Corrected Text will appear here"
+                /> */}
+                <QuillEditor
+                  value={outputText}
+                  readOnly
+                  theme={'snow'}
+                  style={{
+                    minHeight: '300px',
+                  }}
+                  placeholder="Your Corrected Text will appear here"
+                />
+                <Flex justify={'flex-end'} my={8}>
+                  <Button
+                    variant="light"
+                    color="green"
+                    style={{
+                      border: '1px solid',
+                    }}
+                    onClick={() => {
+                      downLoadToTextFile(outputText, 'output.txt');
+                    }}
+                  >
+                    Download Text
+                  </Button>
+                </Flex>
               </>
             }
           </Box>
