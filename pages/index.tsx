@@ -1,5 +1,5 @@
 import React, { FC, useEffect, useState } from 'react';
-
+import { GeistSans } from 'geist/font/sans';
 import {
   TextInput,
   NumberInput,
@@ -18,14 +18,54 @@ import {
   LoadingOverlay,
   FileInput,
   FileButton,
+  ColorSchemeProvider,
+  MantineProvider,
+  ColorScheme,
 } from '@mantine/core';
 import dynamic from 'next/dynamic';
 const QuillEditor = dynamic(() => import('react-quill'), {
   ssr: false, // This ensures it's not loaded during server-side rendering
 });
 import 'react-quill/dist/quill.snow.css';
+import StyledButton from '@/components/StyledButton';
+import {
+  IconCopy,
+  IconDownload,
+  IconPrinter,
+  IconX,
+} from '@tabler/icons-react';
 
-const GrammarChecker: FC = () => {
+type Language = 'en' | 'es' | 'pt';
+
+type HomeProps = {
+  theme?: string; // 'light' | 'dark'
+  lang?: Language; // 'en' | 'es' | 'pt'
+};
+
+const Home: React.FC<HomeProps> = (props) => {
+  useEffect(() => {
+    console.log('props', props);
+  }, [props]);
+  // App theme setup
+  const [app_theme, setAppTheme] = useState<string>(props.theme || 'dark');
+  const toggleColorScheme = (value?: ColorScheme) => {
+    // console.log('Toggle color scheme', value);
+    setAppTheme(value === 'dark' ? 'dark' : 'light');
+  };
+  useEffect(() => {
+    if (props.theme) {
+      toggleColorScheme(props.theme === 'dark' ? 'dark' : 'light');
+    }
+  }, [props.theme]);
+  const [app_lang, setAppLang] = useState<'en' | 'es' | 'pt'>(
+    props.lang || 'en'
+  );
+  useEffect(() => {
+    // console.log('PROPS: ', props);
+    if (props.lang) {
+      setAppLang(props.lang);
+    }
+  }, [props.lang]);
   const [inputText, setInputText] = useState('');
   const [outputText, setOutputText] = useState('');
   interface Option {
@@ -115,287 +155,481 @@ const GrammarChecker: FC = () => {
     }
   };
 
-  useEffect(() => {
-    const style = document.createElement('style');
-    style.innerHTML = `
-      .ql-editor {
-        height: 300px;
-      }
-    `;
-    document.head.appendChild(style);
-    return () => {
-      document.head.removeChild(style);
-    };
-  }, []);
   return (
     <>
-      <Grid h={'100%'} m={0}>
-        <Grid.Col
-          sx={(theme) => ({
-            boxShadow: theme.shadows.md,
-            backgroundColor: '#FDFDFD',
-            borderRight: '1px solid',
-            borderColor: '#D9D9D9',
-          })}
-          sm={12} // On small screens, take the full width
-          md={6} // On medium screens, take half of the width
+      <ColorSchemeProvider
+        colorScheme={app_theme === 'dark' ? 'dark' : 'light'}
+        toggleColorScheme={() => {}}
+      >
+        <MantineProvider
+          theme={{
+            colorScheme: app_theme === 'dark' ? 'dark' : 'light',
+            fontFamily: GeistSans.style.fontFamily,
+          }}
+          withGlobalStyles
+          withNormalizeCSS
         >
-          <Box py={24} px={'16px'} w={{ base: '100%' }}>
-            <Flex
-              justify={'space-between'}
-              direction={{
-                base: 'column',
-                md: 'row',
-              }}
-              gap={8}
-              my={8}
-            >
-              <Flex w={'100%'}>
-                <FileButton
-                  accept=".txt,.html"
-                  onChange={(event) => {
-                    setTextFile(event);
-                    handleTextFileRead(event as File);
-                  }}
-                >
-                  {(props) => (
-                    <Button
-                      {...props}
-                      variant="light"
-                      color="violet"
-                      size="sm"
-                      style={{
-                        border: '1px solid',
-                        borderTopRightRadius: '0px',
-                        borderBottomRightRadius: '0px',
-                        zIndex: 1,
-                      }}
-                      mr={'-4px'}
-                      w={'120px'}
-                    >
-                      Browse
-                    </Button>
-                  )}
-                </FileButton>
-                <FileInput
-                  iconWidth={'0px'}
-                  accept=".txt,.html"
-                  value={textFile}
-                  clearable
-                  onChange={(event) => {
-                    setTextFile(event);
-                    handleTextFileRead(event as File);
-                  }}
-                  placeholder={'Select file'}
-                  w={{
-                    base: '100%',
-                    md: '100%',
-                  }}
-                />
-              </Flex>
-              <Flex gap={8}>
-                <CopyButton value={inputText}>
-                  {({ copied, copy }) => (
-                    <Button
-                      variant="light"
-                      color="violet"
-                      size="sm"
-                      radius={'sm'}
-                      onClick={copy}
-                      style={{
-                        border: '1px solid',
-                      }}
-                    >
-                      {copied ? 'Copied' : 'Copy'}
-                    </Button>
-                  )}
-                </CopyButton>
+          <style jsx global>{`
+            .ql-toolbar {
+              border: 1px solid ${app_theme === 'dark' ? '#2C2C30' : '#ccc'} !important;
+              border-radius: 25px 25px 0 0;
+            }
+            .ql-editor {
+              height: 300px;
+            }
+            #output-box .ql-editor {
+              height: 368px;
+            }
+            .ql-container {
+              border: 1px solid ${app_theme === 'dark' ? '#2C2C30' : '#ccc'} !important;
+              border-radius: 0 0 25px 25px;
+            }
+            ${app_theme === 'dark'
+              ? `.ql-toolbar svg,
+.ql-toolbar rect,
+.ql-toolbar line,
+.ql-toolbar path,
+.ql-toolbar span {
+          /* fill: #ccc !important; */
+          stroke: #ccc !important;
+          color: #ccc !important; 
+        }`
+              : ''}
 
-                <Button
-                  size="sm"
-                  radius={'sm'}
-                  onClick={() => {
-                    setInputText('');
-                    setOutputText('');
-                  }}
-                  variant="light"
-                  color="pink"
+            ::-webkit-scrollbar {
+              width: 8px;
+              height: 8px;
+            }
+
+            ::-webkit-scrollbar-track {
+              background: transparent; /* Background of the scrollbar track */
+            }
+
+            ::-webkit-scrollbar-thumb {
+              background-color: #888; /* Color of the scrollbar handle */
+              border-radius: 10px;
+              border: 3px solid transparent; /* Padding around the handle */
+              background-clip: padding-box;
+            }
+
+            ::-webkit-scrollbar-thumb:hover {
+              background-color: #555; /* Darker color when hovered */
+            }
+          `}</style>
+          <Grid
+            mih={'100vh'}
+            m={0}
+            bg={app_theme === 'dark' ? '#000000' : '#FFFFFF'}
+          >
+            <Grid.Col
+              sx={(theme) => ({
+                borderRight: '1px solid',
+                borderColor: app_theme === 'dark' ? '#2C2C30' : '#E5E5E5AE',
+              })}
+              sm={12} // On small screens, take the full width
+              md={6} // On medium screens, take half of the width
+            >
+              <Text size={'lg'} weight={700} mb={12} mt={48} mx={20}>
+                Upload text file
+              </Text>
+              <Box px={'20px'} w={{ base: '100%' }}>
+                <Box
                   style={{
-                    border: '1px solid red',
+                    border:
+                      '1px solid ' +
+                      (app_theme === 'dark' ? '#2f2e2e' : '#CDCDCDFF'),
+                    borderRadius: '24px',
+                    padding: '3px',
+                    display: 'flex',
+                    alignItems: 'center',
                   }}
+                  mx={{
+                    base: 'auto',
+                    md: 0,
+                    lg: 0,
+                  }}
+                  // miw={350}
+                  // maw={300}
+                  mb={24}
                 >
-                  <Text
-                    style={{
-                      color: 'red',
+                  <FileButton
+                    accept=".svg"
+                    onChange={(file) => {
+                      // setSvgFile(file);
                     }}
                   >
-                    Clear
-                  </Text>
-                </Button>
-              </Flex>
-            </Flex>
-            <QuillEditor
-              value={inputText}
-              onChange={(value) => {
-                setInputText(value);
-              }}
-              theme={'snow'}
-              style={{
-                minHeight: '300px',
-              }}
-              placeholder="Enter text here"
-            />
-            {/* <Textarea
-              label="Enter or upload your text"
-              value={inputText}
-              placeholder="Enter or upload your text"
-              onChange={(event) => {
-                setInputText(event.currentTarget.value);
-              }}
-              minRows={10}
-            /> */}
-            <Flex justify={'flex-end'} my={8}>
-              <Button
-                variant="light"
-                color="green"
-                style={{
-                  border: '1px solid',
-                }}
-                onClick={() => {
-                  downLoadToTextFile(inputText, 'input.txt');
-                }}
-              >
-                Download Text
-              </Button>
-            </Flex>
-            {/* <Divider my="24px" /> */}
-            <Flex>
-              <Button
-                variant="light"
-                color="violet"
-                w={{
-                  base: '100%',
-                  md: '80%',
-                }}
-                mx={'auto'}
-                style={{
-                  border: '1px solid',
-                }}
-                onClick={() => {
-                  handleGenerate();
-                }}
-                leftIcon={
-                  <svg
-                    color="#3b05ef"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="#3b05ef"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M7.50006 5.6L10.0001 7L8.60006 4.5L10.0001 2L7.50006 3.4L5.00006 2L6.40006 4.5L5.00006 7L7.50006 5.6ZM19.5001 15.4L17.0001 14L18.4001 16.5L17.0001 19L19.5001 17.6L22.0001 19L20.6001 16.5L22.0001 14L19.5001 15.4ZM22.0001 2L19.5001 3.4L17.0001 2L18.4001 4.5L17.0001 7L19.5001 5.6L22.0001 7L20.6001 4.5L22.0001 2ZM14.3701 7.29C13.9801 6.9 13.3501 6.9 12.9601 7.29L1.29006 18.96C0.900059 19.35 0.900059 19.98 1.29006 20.37L3.63006 22.71C4.02006 23.1 4.65006 23.1 5.04006 22.71L16.7001 11.05C17.0901 10.66 17.0901 10.03 16.7001 9.64L14.3701 7.29ZM13.3401 12.78L11.2201 10.66L13.6601 8.22L15.7801 10.34L13.3401 12.78Z"
-                      fill="#3b05ef"
-                    />
-                  </svg>
-                }
-              >
-                <Text>Fix Grammatical Errors</Text>
-              </Button>
-            </Flex>
-          </Box>
-        </Grid.Col>
-        <Grid.Col
-          sx={(theme) => ({
-            boxShadow: theme.shadows.md,
-            backgroundColor: '#FDFDFD',
-            borderRight: '1px solid',
-            borderColor: '#D9D9D9',
-          })}
-          sm={12} // On small screens, take the full width
-          md={6} // On medium screens, take half of the width
-        >
-          <Box
-            py={24}
-            px={'16px'}
-            w={{ base: '100%' }}
-            pos={'relative'}
-            h={'100vh'}
-          >
-            <LoadingOverlay
-              visible={loading}
-              zIndex={1000}
-              overlayOpacity={0.5}
-              loaderProps={{ color: 'violet', type: 'bars' }}
-            />
-            {
-              <>
-                <Flex
-                  justify={'space-between'}
-                  direction={{
-                    base: 'column',
-                    md: 'row',
-                  }}
-                  gap={8}
-                  my={8}
-                >
-                  <Text size={'lg'} weight={900}>
-                    Grammatically Corrected Text
-                  </Text>
-                  <CopyButton value={outputText}>
-                    {({ copied, copy }) => (
+                    {(props) => (
                       <Button
-                        variant="light"
-                        color="violet"
+                        {...props}
                         size="sm"
-                        radius={'sm'}
-                        onClick={copy}
                         style={{
-                          border: '1px solid',
+                          borderRadius: '24px',
+                          zIndex: 1,
+                          // padding: '0px',
+                          color: app_theme === 'dark' ? '#CDCDCDFF' : '#141415',
+                          backgroundColor:
+                            app_theme === 'dark' ? '#141415' : '#EDEDEE',
                         }}
+                        w={'120px'}
                       >
-                        {copied ? 'Copied' : 'Copy'}
+                        Browse
                       </Button>
                     )}
-                  </CopyButton>
-                </Flex>
-                {/* <Textarea
-                  label="Grammatically Corrected Text"
-                  value={outputText}
-                  readOnly
-                  minRows={10}
-                  placeholder="Your Corrected Text will appear here"
-                /> */}
+                  </FileButton>
+                  <FileInput
+                    accept=".txt,.html"
+                    value={textFile}
+                    onChange={(event) => {
+                      setTextFile(event);
+                      handleTextFileRead(event as File);
+                    }}
+                    // w={'100%'}
+                    style={{
+                      border: 'none',
+                    }}
+                    styles={(theme) => ({
+                      input: {
+                        border: 'none',
+                        backgroundColor: 'transparent',
+                      },
+                    })}
+                    placeholder={'No file selected'}
+                    clearable
+                  />
+                </Box>
                 <QuillEditor
-                  value={outputText}
-                  readOnly
+                  value={inputText}
+                  onChange={(value) => {
+                    setInputText(value);
+                  }}
                   theme={'snow'}
                   style={{
                     minHeight: '300px',
                   }}
-                  placeholder="Your Corrected Text will appear here"
+                  placeholder="Enter text here"
                 />
-                <Flex justify={'flex-end'} my={8}>
-                  <Button
-                    variant="light"
-                    color="green"
-                    style={{
-                      border: '1px solid',
-                    }}
-                    onClick={() => {
-                      downLoadToTextFile(outputText, 'output.txt');
-                    }}
-                  >
-                    Download Text
-                  </Button>
+                <Flex
+                  mt={24}
+                  justify={'space-between'}
+                  align={{
+                    md: 'center',
+                  }}
+                  direction={{
+                    base: 'column',
+                    md: 'row',
+                  }}
+                  mb={48}
+                  gap={8}
+                >
+                  <Flex gap={4} py={4}>
+                    <CopyButton value={inputText}>
+                      {({ copied, copy }) => (
+                        <Button
+                          variant="outline"
+                          onClick={copy}
+                          style={{
+                            backgroundColor: 'transparent',
+                            padding: '2px',
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '50%',
+                          }}
+                          styles={{
+                            root: {
+                              color:
+                                app_theme === 'dark' ? '#EDEDEE' : '#141415',
+                              border:
+                                '1px solid ' +
+                                (app_theme === 'dark' ? '#2C2C30' : '#141415'),
+                              '&:hover': {
+                                backgroundColor:
+                                  (app_theme === 'light'
+                                    ? '#fafafa'
+                                    : '#2C2C30') + '!important',
+                              },
+                              '&:disabled': {
+                                color:
+                                  app_theme === 'dark' ? '#76767F' : '#C5C5C9',
+                                border:
+                                  '1px solid ' +
+                                  (app_theme === 'dark'
+                                    ? '#76767F'
+                                    : '#C5C5C9'),
+                              },
+                            },
+                          }}
+                          disabled={inputText === ''}
+                        >
+                          <IconCopy size={18} />
+                        </Button>
+                      )}
+                    </CopyButton>
+                    <Button
+                      variant="filled"
+                      style={{
+                        backgroundColor: 'transparent',
+                        padding: '2px',
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '50%',
+                      }}
+                      styles={{
+                        root: {
+                          color: app_theme === 'dark' ? '#EDEDEE' : '#141415',
+                          border:
+                            '1px solid ' +
+                            (app_theme === 'dark' ? '#2C2C30' : '#141415'),
+                          '&:hover': {
+                            backgroundColor:
+                              (app_theme === 'light' ? '#fafafa' : '#2C2C30') +
+                              '!important',
+                          },
+                          '&:disabled': {
+                            color: app_theme === 'dark' ? '#76767F' : '#C5C5C9',
+                            border:
+                              '1px solid ' +
+                              (app_theme === 'dark' ? '#76767F' : '#C5C5C9'),
+                          },
+                        },
+                      }}
+                      disabled={inputText === ''}
+                      onClick={() => {
+                        downLoadToTextFile(inputText, 'input.txt');
+                      }}
+                    >
+                      <IconDownload size={18} />
+                    </Button>
+                    <Button
+                      style={{
+                        backgroundColor: 'transparent',
+                        padding: '2px',
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '50%',
+                        border: 'none',
+                      }}
+                      styles={{
+                        root: {
+                          color: app_theme === 'dark' ? '#EDEDEE' : '#141415',
+                          '&:hover': {
+                            color: '#ff0000',
+                          },
+                          '&:disabled': {
+                            color: app_theme === 'dark' ? '#76767F' : '#C5C5C9',
+                          },
+                        },
+                      }}
+                      onClick={() => {
+                        setInputText('');
+                      }}
+                      disabled={inputText === ''}
+                      variant="outline"
+                    >
+                      <IconX size={18} />
+                    </Button>
+                  </Flex>
+                  <StyledButton
+                    app_theme={app_theme}
+                    loading={loading}
+                    onClick={handleGenerate}
+                    icon={
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 22 22"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M13.5 4.33341V2.66675M13.5 14.3334V12.6667M7.66667 8.50008H9.33333M17.6667 8.50008H19.3333M15.8333 10.8334L16.8333 11.8334M15.8333 6.16675L16.8333 5.16675M3.5 18.5001L11 11.0001M11.1667 6.16675L10.1667 5.16675"
+                          stroke="#909098"
+                          stroke-width="1.75"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
+                      </svg>
+                    }
+                    disabled={inputText === ''}
+                    label={'Check Grammar'}
+                  />
                 </Flex>
-              </>
-            }
-          </Box>
-        </Grid.Col>
-      </Grid>
+              </Box>
+            </Grid.Col>
+            <Grid.Col
+              sx={(theme) => ({
+                boxShadow: theme.shadows.md,
+              })}
+              sm={12} // On small screens, take the full width
+              md={6} // On medium screens, take half of the width
+            >
+              <Box px={'20px'} w={{ base: '100%' }} pos={'relative'}>
+                <Text size={'lg'} weight={700} mb={12} mt={48}>
+                  Grammatically Corrected Text
+                </Text>
+                <LoadingOverlay
+                  visible={loading}
+                  zIndex={1000}
+                  overlayOpacity={0.5}
+                  loaderProps={{ color: 'violet', type: 'bars' }}
+                />
+                {!outputText && (
+                  <Text
+                    size={'md'}
+                    weight={100}
+                    color={app_theme === 'dark' ? '#EDEDEE' : 'gray'}
+                    mb={8}
+                  >
+                    The corrected text will appear here.
+                  </Text>
+                )}
+                {outputText && (
+                  <div id="output-box">
+                    <QuillEditor
+                      value={outputText}
+                      onChange={(value) => {
+                        setOutputText(value);
+                      }}
+                      theme={'snow'}
+                      style={{
+                        minHeight: '300px',
+                      }}
+                      placeholder="Your Corrected Text will appear here"
+                    />
+                  </div>
+                )}
+                {outputText && (
+                  <Flex
+                    mt={24}
+                    justify={'flex-end'}
+                    align={{
+                      md: 'center',
+                    }}
+                    mb={48}
+                    gap={8}
+                  >
+                    <Flex gap={4} py={4}>
+                      <CopyButton value={inputText}>
+                        {({ copied, copy }) => (
+                          <Button
+                            variant="outline"
+                            onClick={copy}
+                            style={{
+                              backgroundColor: 'transparent',
+                              padding: '2px',
+                              width: '40px',
+                              height: '40px',
+                              borderRadius: '50%',
+                            }}
+                            styles={{
+                              root: {
+                                color:
+                                  app_theme === 'dark' ? '#EDEDEE' : '#141415',
+                                border:
+                                  '1px solid ' +
+                                  (app_theme === 'dark'
+                                    ? '#2C2C30'
+                                    : '#141415'),
+                                '&:hover': {
+                                  backgroundColor:
+                                    (app_theme === 'light'
+                                      ? '#fafafa'
+                                      : '#2C2C30') + '!important',
+                                },
+                                '&:disabled': {
+                                  color:
+                                    app_theme === 'dark'
+                                      ? '#76767F'
+                                      : '#C5C5C9',
+                                  border:
+                                    '1px solid ' +
+                                    (app_theme === 'dark'
+                                      ? '#76767F'
+                                      : '#C5C5C9'),
+                                },
+                              },
+                            }}
+                            disabled={inputText === ''}
+                          >
+                            <IconCopy size={18} />
+                          </Button>
+                        )}
+                      </CopyButton>
+                      <Button
+                        variant="filled"
+                        style={{
+                          backgroundColor: 'transparent',
+                          padding: '2px',
+                          width: '40px',
+                          height: '40px',
+                          borderRadius: '50%',
+                        }}
+                        styles={{
+                          root: {
+                            color: app_theme === 'dark' ? '#EDEDEE' : '#141415',
+                            border:
+                              '1px solid ' +
+                              (app_theme === 'dark' ? '#2C2C30' : '#141415'),
+                            '&:hover': {
+                              backgroundColor:
+                                (app_theme === 'light'
+                                  ? '#fafafa'
+                                  : '#2C2C30') + '!important',
+                            },
+                            '&:disabled': {
+                              color:
+                                app_theme === 'dark' ? '#76767F' : '#C5C5C9',
+                              border:
+                                '1px solid ' +
+                                (app_theme === 'dark' ? '#76767F' : '#C5C5C9'),
+                            },
+                          },
+                        }}
+                        disabled={inputText === ''}
+                        onClick={() => {
+                          downLoadToTextFile(inputText, 'input.txt');
+                        }}
+                      >
+                        <IconDownload size={18} />
+                      </Button>
+                      <Button
+                        style={{
+                          backgroundColor: 'transparent',
+                          padding: '2px',
+                          width: '40px',
+                          height: '40px',
+                          borderRadius: '50%',
+                          border: 'none',
+                        }}
+                        styles={{
+                          root: {
+                            color: app_theme === 'dark' ? '#EDEDEE' : '#141415',
+                            '&:hover': {
+                              color: '#ff0000',
+                            },
+                            '&:disabled': {
+                              color:
+                                app_theme === 'dark' ? '#76767F' : '#C5C5C9',
+                            },
+                          },
+                        }}
+                        onClick={() => {
+                          setInputText('');
+                        }}
+                        disabled={inputText === ''}
+                        variant="outline"
+                      >
+                        <IconX size={18} />
+                      </Button>
+                    </Flex>
+                  </Flex>
+                )}
+              </Box>
+            </Grid.Col>
+          </Grid>
+        </MantineProvider>
+      </ColorSchemeProvider>
     </>
   );
 };
 
-export default GrammarChecker;
+export default Home;
