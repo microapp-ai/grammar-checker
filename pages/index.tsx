@@ -47,7 +47,7 @@ const Home: React.FC<HomeProps> = (props) => {
     console.log('props', props);
   }, [props]);
   // App theme setup
-  const [app_theme, setAppTheme] = useState<string>(props.theme || 'dark');
+  const [app_theme, setAppTheme] = useState<string>(props.theme || 'light');
   const toggleColorScheme = (value?: ColorScheme) => {
     // console.log('Toggle color scheme', value);
     setAppTheme(value === 'dark' ? 'dark' : 'light');
@@ -233,7 +233,7 @@ const Home: React.FC<HomeProps> = (props) => {
                 {translations[app_lang].UPLOAD_TEXT_FILE}
               </Text>
               <Box px={'20px'} w={{ base: '100%' }}>
-                <Box
+                <Flex
                   style={{
                     border:
                       '1px solid ' +
@@ -248,55 +248,59 @@ const Home: React.FC<HomeProps> = (props) => {
                     md: 0,
                     lg: 0,
                   }}
-                  // miw={350}
-                  // maw={300}
                   mb={24}
+                  maw={'100%'}
                 >
-                  <FileButton
-                    accept=".txt,.html"
-                    onChange={(file) => {
-                      setTextFile(file);
-                    }}
-                  >
-                    {(props) => (
-                      <Button
-                        {...props}
-                        size="sm"
-                        style={{
-                          borderRadius: '24px',
-                          zIndex: 1,
-                          // padding: '0px',
-                          color: app_theme === 'dark' ? '#CDCDCDFF' : '#141415',
-                          backgroundColor:
-                            app_theme === 'dark' ? '#141415' : '#EDEDEE',
-                        }}
-                        w={'120px'}
-                      >
-                        {translations[app_lang].BROWSE}
-                      </Button>
-                    )}
-                  </FileButton>
-                  <FileInput
-                    accept=".txt,.html"
-                    value={textFile}
-                    onChange={(event) => {
-                      setTextFile(event);
-                      handleTextFileRead(event as File);
-                    }}
-                    // w={'100%'}
-                    style={{
-                      border: 'none',
-                    }}
-                    styles={(theme) => ({
-                      input: {
+                  <Box>
+                    <FileButton
+                      accept=".txt,.html"
+                      onChange={(file) => {
+                        setTextFile(file);
+                      }}
+                    >
+                      {(props) => (
+                        <Button
+                          {...props}
+                          size="sm"
+                          style={{
+                            borderRadius: '24px',
+                            zIndex: 1,
+                            // padding: '0px',
+                            color:
+                              app_theme === 'dark' ? '#CDCDCDFF' : '#141415',
+                            backgroundColor:
+                              app_theme === 'dark' ? '#141415' : '#EDEDEE',
+                          }}
+                          w={'120px'}
+                        >
+                          {translations[app_lang].BROWSE}
+                        </Button>
+                      )}
+                    </FileButton>
+                  </Box>
+                  <Box maw={'calc(100% - 120px)'} w={'100%'}>
+                    <FileInput
+                      accept=".txt,.html"
+                      value={textFile}
+                      onChange={(event) => {
+                        setTextFile(event);
+                        handleTextFileRead(event as File);
+                      }}
+                      style={{
                         border: 'none',
-                        backgroundColor: 'transparent',
-                      },
-                    })}
-                    placeholder={translations[app_lang].NO_FILE_SELECTED}
-                    clearable
-                  />
-                </Box>
+                        width: '100%',
+                      }}
+                      styles={(theme) => ({
+                        input: {
+                          border: 'none',
+                          backgroundColor: 'transparent',
+                        },
+                      })}
+                      placeholder={translations[app_lang].NO_FILE_SELECTED}
+                      clearable
+                    />
+                  </Box>
+                </Flex>
                 <QuillEditor
                   value={inputText}
                   onChange={(value) => {
