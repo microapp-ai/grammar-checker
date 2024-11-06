@@ -151,7 +151,7 @@ const Home: React.FC<HomeProps> = (props) => {
       };
       displayWord();
     } catch (error) {
-      console.error('Error generating poem:', error);
+      console.error(translations[app_lang].ERROR, error);
     }
   };
 
@@ -230,7 +230,7 @@ const Home: React.FC<HomeProps> = (props) => {
               md={6} // On medium screens, take half of the width
             >
               <Text size={'lg'} weight={700} mb={12} mt={48} mx={20}>
-                Upload text file
+                {translations[app_lang].UPLOAD_TEXT_FILE}
               </Text>
               <Box px={'20px'} w={{ base: '100%' }}>
                 <Box
@@ -253,9 +253,9 @@ const Home: React.FC<HomeProps> = (props) => {
                   mb={24}
                 >
                   <FileButton
-                    accept=".svg"
+                    accept=".txt,.html"
                     onChange={(file) => {
-                      // setSvgFile(file);
+                      setTextFile(file);
                     }}
                   >
                     {(props) => (
@@ -272,7 +272,7 @@ const Home: React.FC<HomeProps> = (props) => {
                         }}
                         w={'120px'}
                       >
-                        Browse
+                        {translations[app_lang].BROWSE}
                       </Button>
                     )}
                   </FileButton>
@@ -293,7 +293,7 @@ const Home: React.FC<HomeProps> = (props) => {
                         backgroundColor: 'transparent',
                       },
                     })}
-                    placeholder={'No file selected'}
+                    placeholder={translations[app_lang].NO_FILE_SELECTED}
                     clearable
                   />
                 </Box>
@@ -306,7 +306,7 @@ const Home: React.FC<HomeProps> = (props) => {
                   style={{
                     minHeight: '300px',
                   }}
-                  placeholder="Enter text here"
+                  placeholder={translations[app_lang].INPUT_PLACEHOLDER}
                 />
                 <Flex
                   mt={24}
@@ -450,7 +450,7 @@ const Home: React.FC<HomeProps> = (props) => {
                       </svg>
                     }
                     disabled={inputText === ''}
-                    label={'Check Grammar'}
+                    label={translations[app_lang].BUTTON_LABEL}
                   />
                 </Flex>
               </Box>
@@ -464,7 +464,7 @@ const Home: React.FC<HomeProps> = (props) => {
             >
               <Box px={'20px'} w={{ base: '100%' }} pos={'relative'}>
                 <Text size={'lg'} weight={700} mb={12} mt={48}>
-                  Grammatically Corrected Text
+                  {translations[app_lang].CORRECTED_TEXT}
                 </Text>
                 <LoadingOverlay
                   visible={loading}
@@ -479,7 +479,7 @@ const Home: React.FC<HomeProps> = (props) => {
                     color={app_theme === 'dark' ? '#EDEDEE' : 'gray'}
                     mb={8}
                   >
-                    The corrected text will appear here.
+                    {translations[app_lang].THE_CORRECTED_TEXT_WILL_APPEAR_HERE}
                   </Text>
                 )}
                 {outputText && (
@@ -493,7 +493,7 @@ const Home: React.FC<HomeProps> = (props) => {
                       style={{
                         minHeight: '300px',
                       }}
-                      placeholder="Your Corrected Text will appear here"
+                      placeholder={translations[app_lang].OUTPUT_PLACEHOLDER}
                     />
                   </div>
                 )}
@@ -633,3 +633,39 @@ const Home: React.FC<HomeProps> = (props) => {
 };
 
 export default Home;
+
+const translations = {
+  en: {
+    ERROR: 'Error generating poem:',
+    UPLOAD_TEXT_FILE: 'Upload text file',
+    BROWSE: 'Browse',
+    NO_FILE_SELECTED: 'No file selected',
+    INPUT_PLACEHOLDER: 'Enter text here',
+    BUTTON_LABEL: 'Check Grammar',
+    CORRECTED_TEXT: 'Grammatically Corrected Text',
+    THE_CORRECTED_TEXT_WILL_APPEAR_HERE: 'The corrected text will appear here.',
+    OUTPUT_PLACEHOLDER: 'Your Corrected Text will appear here',
+  },
+  es: {
+    ERROR: 'Error generando poema:',
+    UPLOAD_TEXT_FILE: 'Subir archivo de texto',
+    BROWSE: 'Navegar',
+    NO_FILE_SELECTED: 'Ningún archivo seleccionado',
+    INPUT_PLACEHOLDER: 'Ingrese el texto aquí',
+    BUTTON_LABEL: 'Verificar gramática',
+    CORRECTED_TEXT: 'Texto corregido gramaticalmente',
+    THE_CORRECTED_TEXT_WILL_APPEAR_HERE: 'El texto corregido aparecerá aquí.',
+    OUTPUT_PLACEHOLDER: 'Su texto corregido aparecerá aquí',
+  },
+  pt: {
+    ERROR: 'Erro ao gerar poema:',
+    UPLOAD_TEXT_FILE: 'Carregar arquivo de texto',
+    BROWSE: 'Navegar',
+    NO_FILE_SELECTED: 'Nenhum arquivo selecionado',
+    INPUT_PLACEHOLDER: 'Insira o texto aqui',
+    BUTTON_LABEL: 'Verificar gramática',
+    CORRECTED_TEXT: 'Texto corrigido gramaticalmente',
+    THE_CORRECTED_TEXT_WILL_APPEAR_HERE: 'O texto corrigido aparecerá aqui.',
+    OUTPUT_PLACEHOLDER: 'Seu texto corrigido aparecerá aqui',
+  },
+};
